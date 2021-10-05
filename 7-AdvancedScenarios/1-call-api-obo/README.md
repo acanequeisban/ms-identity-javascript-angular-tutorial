@@ -33,8 +33,8 @@ This sample demonstrates an Angular single-page application which lets a user au
 |-------------------------------------|------------------------------------------------------------|
 | `SPA/src/app/auth-config.ts`        | Authentication parameters for SPA project reside here.     |
 | `SPA/src/app/app.module.ts`         | MSAL Angular is initialized here.                          |
-| `API/appsettings.json`              | Authentication parameters for API project reside here.     |
-| `API/Startup.cs`                    | Microsoft.Identity.Web is initialized here.                |
+| `API/ProfileAPI/appsettings.json`   | Authentication parameters for API project reside here.     |
+| `API/ProfileAPI/Startup.cs`         | Microsoft.Identity.Web is initialized here.                |
 
 ## Prerequisites
 
@@ -57,7 +57,7 @@ or download and extract the repository .zip file.
 
 ```console
     cd ms-identity-javascript-angular-tutorial
-    cd 7-AdvancedScenarios/1-call-api-obo/API
+    cd 7-AdvancedScenarios/1-call-api-obo/API/ProfileAPI
     dotnet restore
 ```
 
@@ -73,7 +73,7 @@ For more information and potential issues, see: [HTTPS in .NET Core](https://doc
 ### Step 4. Install Angular SPA dependencies
 
 ```console
-    cd ../
+    cd ../../
     cd SPA
     npm install
 ```
@@ -163,13 +163,13 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `API\appsettings.json` file.
+1. Open the `API\ProfileAPI\appsettings.json` file.
 1. Find the key `Domain` and replace the existing value with your Azure AD tenant name.
 1. Find the key `ClientId` and replace the existing value with the application ID (clientId) of `ProfileAPI` app copied from the Azure portal.
 1. Find the key `ClientSecret` and replace the existing value with the key you saved during the creation of `ProfileAPI` copied from the Azure portal.
 1. Find the key `TenantId` and replace the existing value with your Azure AD tenant ID.
 
-1. Open the `API\Controllers\TodoListController.cs` file.
+1. Open the `API\Controllers\ProfileController.cs` file.
 1. Find the variable `scopeRequiredByApi` and replace its value with the name of the API scope that you have just exposed (by default `access_as_user`).
 
 ### Register the client app (ProfileSPA)
@@ -208,7 +208,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 #### Configure Known Client Applications for service (ProfileAPI)
 
-For a middle-tier Web API (`ProfileAPI`) to be able to call a downstream web API, the middle-tier app needs to be granted the required permissions as well. However, since the middle-tier cannot interact with the signed-in user, it needs to be explicitly bound to the client app in its **Azure AD** registration. This binding merges the permissions required by both the client and the middle tier Web Api and presents it to the end user in a single consent dialog. The user then consent to this combined set of permissions.
+For a middle-tier web API (`ProfileAPI`) to be able to call a downstream web API, the middle-tier app needs to be granted the required permissions as well. However, since the middle-tier cannot interact with the signed-in user, it needs to be explicitly bound to the client app in its **Azure AD** registration. This binding merges the permissions required by both the client and the middle tier Web Api and presents it to the end user in a single consent dialog. The user then consent to this combined set of permissions.
 
 To achieve this, you need to add the **Application Id** of the client app, in the Manifest of the web API in the `knownClientApplications` property. Here's how:
 
@@ -235,7 +235,7 @@ Using a command line interface such as VS Code integrated terminal, locate the a
 In a separate console window, execute the following commands:
 
 ```console
-    cd API
+    cd API/ProfileAPI
     dotnet run
 ```
 
@@ -259,7 +259,7 @@ Were we successful in addressing your learning objective? Consider taking a mome
 
 ### Configuring the middle-tier web API (msal-dotnet-api)
 
-In [Startup.cs](./API/Startup.cs), add services for authentication, token validation, token caching and Graph SDK support using the [Microsoft.Identity.Web](https://github.com/AzureAD/microsoft-identity-web) APIs as shown below:
+In [Startup.cs](./API/ProfileAPI/Startup.cs), add services for authentication, token validation, token caching and Graph SDK support using the [Microsoft.Identity.Web](https://github.com/AzureAD/microsoft-identity-web) APIs as shown below:
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -291,7 +291,7 @@ Notice the [WWW-Authenticate](https://developer.mozilla.org/en-US/docs/Web/HTTP/
 
 The middle-tier application adds the client to the `knownClientApplications` list in its manifest, and then the client app can trigger a combined consent flow for both itself and the middle-tier application. On the Microsoft identity platform, this is done using the `/.default` scope. When triggering a consent screen using known client applications and `/.default`, the consent screen will show permissions for both the client to the middle-tier API, and also request whatever permissions are required by the middle-tier API. The user provides consent for both applications, and then the OBO flow works.
 
-> :information_source: **KnownClientApplications** is an attribute in **application manifest**. It is used for bundling consent if you have a solution that contains two (or more) parts: a client app and a custom web API. If you enter the `appID` (clientID) of the client app into this array, the user will only have to consent only once to the client app. Azure AD will know that consenting to the client means implicitly consenting to the web API. It will automatically provision service principals for both the client and web API at the same time. Both the client and the web API app must be registered in the same tenant.
+> :information_source: **KnownClientApplications** is an attribute in **application manifest**. It is used for bundling consent if you have a solution that contains two (or more) parts: a client app and a custom web API. If you enter the `appID` (clientID) of the client app into this array, the user will have to consent only once to the client app. Azure AD will know that consenting to the client means implicitly consenting to the web API. It will automatically provision service principals for both the client and web API at the same time. Both the client and the web API app must be registered in the same tenant.
 
 ## Debugging the sample
 
