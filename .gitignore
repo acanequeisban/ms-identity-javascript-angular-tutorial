@@ -112,3 +112,5 @@ obj/
 
 # VS Code cache
 .vscode
+.fake
+.ionide
